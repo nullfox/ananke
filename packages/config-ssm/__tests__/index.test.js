@@ -14,6 +14,50 @@ import ConfigSSM from '../src';
 chai.use(asPromised);
 
 describe('@ananke/config-ssm', () => {
+  const generateClient = () => {
+    const callOne = {
+      Parameters: [
+        {
+          Name: '/common/database/host',
+          Value: 'localhost',
+        },
+      ],
+      NextToken: 'ImANextToken!',
+    };
+
+    const callTwo = {
+      Parameters: [
+        {
+          Name: '/common/auth/secret',
+          Value: 'VerySecretKey',
+        },
+      ],
+      NextToken: null,
+    };
+
+    const getParamsPromise = sinon.stub();
+    getParamsPromise.onCall(0).resolves(callOne);
+    getParamsPromise.onCall(1).resolves(callTwo);
+
+    const getParams = sinon.fake.returns({
+      promise: getParamsPromise,
+    });
+
+    const client = {
+      getParametersByPath: getParams,
+    };
+
+    return {
+      callOne,
+      callTwo,
+
+      getParamsPromise,
+      getParams,
+
+      client,
+    };
+  };
+
   describe('#factory()', () => {
     context('when no SSM client is supplied', () => {
       it('should return an instance of ConfigSSM with a default client', () => {
@@ -38,50 +82,6 @@ describe('@ananke/config-ssm', () => {
   });
 
   describe('fetchRaw()', () => {
-    const generateClient = () => {
-      const callOne = {
-        Parameters: [
-          {
-            Name: '/common/database/host',
-            Value: 'localhost',
-          },
-        ],
-        NextToken: 'ImANextToken!',
-      };
-
-      const callTwo = {
-        Parameters: [
-          {
-            Name: '/common/auth/secret',
-            Value: 'VerySecretKey',
-          },
-        ],
-        NextToken: null,
-      };
-
-      const getParamsPromise = sinon.stub();
-      getParamsPromise.onCall(0).resolves(callOne);
-      getParamsPromise.onCall(1).resolves(callTwo);
-
-      const getParams = sinon.fake.returns({
-        promise: getParamsPromise,
-      });
-
-      const client = {
-        getParametersByPath: getParams,
-      };
-
-      return {
-        callOne,
-        callTwo,
-
-        getParamsPromise,
-        getParams,
-
-        client,
-      };
-    };
-
     context('when given a prefix and no options', () => {
       const {
         client,
@@ -288,6 +288,27 @@ describe('@ananke/config-ssm', () => {
 
         expect(keys[0]).to.be.equal('auth.secret');
         expect(keys[1]).to.be.equal('db.host');
+      });
+    });
+  });
+
+  describe('fetch', () => {
+    context('when given a prefix and options', () => {
+      it('should return a structured object', async () => {
+        const {
+          client,
+        } = generateClient();
+
+        const config = ConfigSSM.factory(client);
+
+        const loaded = await config.fetch('/common/');
+
+        expect(loaded).to.have.property('database');
+        expect(loaded.database).to.have.property('host');
+        expect(loaded.database.host).to.be.equal('localhost');
+        expect(loaded).to.have.property('auth');
+        expect(loaded.auth).to.have.property('secret');
+        expect(loaded.auth.secret).to.be.equal('VerySecretKey');
       });
     });
   });
