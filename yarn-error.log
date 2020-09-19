@@ -1,0 +1,43 @@
+Arguments: 
+  /Users/fox/.nvm/versions/node/v12.17.0/bin/node /usr/local/Cellar/yarn/1.22.4/libexec/bin/yarn.js add --dev -W @babel/cli @babel/core @babel/preset-env
+
+PATH: 
+  /Users/fox/.rvm/gems/ruby-2.7.0/bin:/Users/fox/.rvm/gems/ruby-2.7.0@global/bin:/Users/fox/.rvm/rubies/ruby-2.7.0/bin:/Users/fox/.nvm/versions/node/v12.17.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Apple/usr/bin:/Users/fox/.rvm/bin
+
+Yarn version: 
+  1.22.4
+
+Node version: 
+  12.17.0
+
+Platform: 
+  darwin x64
+
+Trace: 
+  Error: https://registry.yarnpkg.com/lerna,: Not found
+      at Request.params.callback [as _callback] (/usr/local/Cellar/yarn/1.22.4/libexec/lib/cli.js:66987:18)
+      at Request.self.callback (/usr/local/Cellar/yarn/1.22.4/libexec/lib/cli.js:140748:22)
+      at Request.emit (events.js:315:20)
+      at Request.<anonymous> (/usr/local/Cellar/yarn/1.22.4/libexec/lib/cli.js:141720:10)
+      at Request.emit (events.js:315:20)
+      at IncomingMessage.<anonymous> (/usr/local/Cellar/yarn/1.22.4/libexec/lib/cli.js:141642:12)
+      at Object.onceWrapper (events.js:421:28)
+      at IncomingMessage.emit (events.js:327:22)
+      at endReadableNT (_stream_readable.js:1221:12)
+      at processTicksAndRejections (internal/process/task_queues.js:84:21)
+
+npm manifest: 
+  {
+    "name": "root",
+    "private": true,
+    "devDependencies": {
+      "lerna,": "^3.22.0"
+    },
+    "workspaces": ["packages/*"]
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

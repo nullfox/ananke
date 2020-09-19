@@ -1,0 +1,6 @@
+const runner = require('./<%= sourcePath %>').default;
+
+module.exports = {
+  runner,
+  options: <%= options %>,
+};

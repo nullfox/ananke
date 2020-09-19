@@ -1,0 +1,11 @@
+const Runtime = require('@ananke/runtime');
+
+const runner = require('./<%= sourcePath %>').default;
+
+module.exports.handler = async event => (
+  Runtime.Handler.Queue.factory(
+    runner,
+    <%= options %>,
+  )
+    .exec(event)
+);

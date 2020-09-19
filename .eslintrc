@@ -1,0 +1,10 @@
+{
+  "extends": "airbnb-base",
+  "rules": {
+    "import/no-extraneous-dependencies": [ "error", { "devDependencies": true } ]
+  },
+  "env": {
+    "node": true,
+    "mocha": true
+  }
+}
