@@ -27,15 +27,21 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: Install dependencies
-      run: yarn bootstrap
+    - name: Bootstrap & install dependencies
+      uses: borales/actions-yarn@v2.0.0
+      with:
+        cmd: bootstrap
       env:
         CI: true
     - name: Linting
-      run: yarn lint
+      uses: borales/actions-yarn@v2.0.0
+      with:
+        cmd: lint
       env:
         CI: true
     - name: Unit tests
-      run: yarn test
+      uses: borales/actions-yarn@v2.0.0
+      with:
+        cmd: test
       env:
         CI: true
