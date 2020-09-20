@@ -18,6 +18,7 @@
   },
   "scripts": {
     "build": "babel --root-mode upward src -d lib",
+    "coverage": "nyc --reporter=html --reporter=text mocha --timeout=3000 --require __tests__/babel.register.js __tests__/**/*.test.js",
     "lint": "eslint --config ../../.eslintrc src",
     "test": "mocha --require __tests__/babel.register.js __tests__/**/*.test.js"
   },

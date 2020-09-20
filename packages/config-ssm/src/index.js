@@ -40,7 +40,7 @@ export default class ConfigSSM {
     const aggregate = chain(response.Parameters)
       .map((param) => (
         [
-          param.Name.replace(request.Path, '').replace(/\//g, '.'),
+          param.Name.replace(request.Path, '').replace(/^\//, '').replace(/\//g, '.'),
           param.Value,
         ]
       ))

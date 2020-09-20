@@ -22,7 +22,8 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --use-workspaces",
     "build": "lerna run build",
-    "link": "lerna link --force local",
+    "coverage": "lerna run coverage",
+    "lerna-link": "lerna link --force-local",
     "lint": "lerna run lint",
     "test": "lerna run test"
   }

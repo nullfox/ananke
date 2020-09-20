@@ -1,5 +1,3 @@
-import { join } from 'path';
-
 import {
   SSM as Client,
 } from 'aws-sdk';
@@ -9,11 +7,11 @@ import asPromised from 'chai-as-promised';
 
 import sinon from 'sinon';
 
-import ConfigSSM from '../src';
+import ConfigSSMConvict from '../src';
 
 chai.use(asPromised);
 
-describe('@ananke/config-ssm', () => {
+describe('@ananke/config-ssm-convict', () => {
   const generateClient = () => {
     const callOne = {
       Parameters: [
@@ -95,13 +93,13 @@ describe('@ananke/config-ssm', () => {
       it('should return an object containing all configuration values', async () => {
         const config = ConfigSSM.factory(client);
 
-        const loaded = await config.fetchRaw('/development/');
+        const loaded = await config.fetchRaw('/common/');
 
         expect(getParamsPromise.calledTwice).to.be.equal(true);
-        expect(loaded).to.have.property('common.database.host');
-        expect(loaded['common.database.host']).to.be.equal(callOne.Parameters[0].Value);
-        expect(loaded).to.have.property('common.auth.secret');
-        expect(loaded['common.auth.secret']).to.be.equal(callTwo.Parameters[0].Value);
+        expect(loaded).to.have.property('database.host');
+        expect(loaded['database.host']).to.be.equal(callOne.Parameters[0].Value);
+        expect(loaded).to.have.property('auth.secret');
+        expect(loaded['auth.secret']).to.be.equal(callTwo.Parameters[0].Value);
       });
     });
 
@@ -115,7 +113,7 @@ describe('@ananke/config-ssm', () => {
 
         expect(
           config.fetchRaw(
-            '/development/',
+            '/common/',
             {
               only: 'hi!',
             },
@@ -137,16 +135,16 @@ describe('@ananke/config-ssm', () => {
         const config = ConfigSSM.factory(client);
 
         const loaded = await config.fetchRaw(
-          '/development/',
+          '/common/',
           {
             only: /database/,
           },
         );
 
         expect(getParamsPromise.calledTwice).to.be.equal(true);
-        expect(loaded).to.have.property('common.database.host');
-        expect(loaded['common.database.host']).to.be.equal(callOne.Parameters[0].Value);
-        expect(loaded).to.not.have.property('common.auth.secret');
+        expect(loaded).to.have.property('database.host');
+        expect(loaded['database.host']).to.be.equal(callOne.Parameters[0].Value);
+        expect(loaded).to.not.have.property('auth.secret');
       });
     });
 
@@ -160,7 +158,7 @@ describe('@ananke/config-ssm', () => {
 
         expect(
           config.fetchRaw(
-            '/development/',
+            '/common/',
             {
               except: 'hi!',
             },
@@ -182,16 +180,16 @@ describe('@ananke/config-ssm', () => {
         const config = ConfigSSM.factory(client);
 
         const loaded = await config.fetchRaw(
-          '/development/',
+          '/common/',
           {
             except: /database/,
           },
         );
 
         expect(getParamsPromise.calledTwice).to.be.equal(true);
-        expect(loaded).to.not.have.property('common.database.host');
-        expect(loaded).to.have.property('common.auth.secret');
-        expect(loaded['common.auth.secret']).to.be.equal(callTwo.Parameters[0].Value);
+        expect(loaded).to.not.have.property('database.host');
+        expect(loaded).to.have.property('auth.secret');
+        expect(loaded['auth.secret']).to.be.equal(callTwo.Parameters[0].Value);
       });
     });
 
@@ -205,7 +203,7 @@ describe('@ananke/config-ssm', () => {
 
         expect(
           config.fetchRaw(
-            '/development/',
+            '/common/',
             {
               sortKey: 'hi!',
             },
@@ -225,7 +223,7 @@ describe('@ananke/config-ssm', () => {
         const config = ConfigSSM.factory(client);
 
         const loaded = await config.fetchRaw(
-          '/development/',
+          '/common/',
           {
             sortKey: (key) => key.split('').reverse().join('').slice(2),
           },
@@ -235,8 +233,8 @@ describe('@ananke/config-ssm', () => {
 
         const keys = Object.keys(loaded);
 
-        expect(keys[0]).to.be.equal('common.database.host');
-        expect(keys[1]).to.be.equal('common.auth.secret');
+        expect(keys[0]).to.be.equal('database.host');
+        expect(keys[1]).to.be.equal('auth.secret');
       });
     });
 
@@ -250,7 +248,7 @@ describe('@ananke/config-ssm', () => {
 
         expect(
           config.fetchRaw(
-            '/development/',
+            '/common/',
             {
               transformKey: 'hi!',
             },
@@ -270,7 +268,7 @@ describe('@ananke/config-ssm', () => {
         const config = ConfigSSM.factory(client);
 
         const loaded = await config.fetchRaw(
-          '/development/',
+          '/common/',
           {
             transformKey: (key) => {
               if (key.includes('database')) {
@@ -286,8 +284,8 @@ describe('@ananke/config-ssm', () => {
 
         const keys = Object.keys(loaded);
 
-        expect(keys[0]).to.be.equal('common.auth.secret');
-        expect(keys[1]).to.be.equal('common.db.host');
+        expect(keys[0]).to.be.equal('auth.secret');
+        expect(keys[1]).to.be.equal('db.host');
       });
     });
   });
@@ -301,15 +299,14 @@ describe('@ananke/config-ssm', () => {
 
         const config = ConfigSSM.factory(client);
 
-        const loaded = await config.fetch('/development/');
+        const loaded = await config.fetch('/common/');
 
-        expect(loaded).to.have.property('common');
-        expect(loaded.common).to.have.property('database');
-        expect(loaded.common.database).to.have.property('host');
-        expect(loaded.common.database.host).to.be.equal('localhost');
-        expect(loaded.common).to.have.property('auth');
-        expect(loaded.common.auth).to.have.property('secret');
-        expect(loaded.common.auth.secret).to.be.equal('VerySecretKey');
+        expect(loaded).to.have.property('database');
+        expect(loaded.database).to.have.property('host');
+        expect(loaded.database.host).to.be.equal('localhost');
+        expect(loaded).to.have.property('auth');
+        expect(loaded.auth).to.have.property('secret');
+        expect(loaded.auth.secret).to.be.equal('VerySecretKey');
       });
     });
 
@@ -321,13 +318,12 @@ describe('@ananke/config-ssm', () => {
 
         const config = ConfigSSM.factory(client);
 
-        const loaded = await config.fetch('/development/', { only: /database/ });
+        const loaded = await config.fetch('/common/', { only: /database/ });
 
-        expect(loaded).to.have.property('common');
-        expect(loaded.common).to.have.property('database');
-        expect(loaded.common.database).to.have.property('host');
-        expect(loaded.common.database.host).to.be.equal('localhost');
-        expect(loaded.common).to.not.have.property('auth');
+        expect(loaded).to.have.property('database');
+        expect(loaded.database).to.have.property('host');
+        expect(loaded.database.host).to.be.equal('localhost');
+        expect(loaded).to.not.have.property('auth');
       });
     });
   });
