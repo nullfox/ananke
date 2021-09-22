@@ -1,0 +1,67 @@
+import { mapKeys } from 'lodash';
+import * as Yup from 'yup';
+import Error from './rest/error';
+import { eventCanHaveBody, respond } from './rest/utils';
+
+import EntryPoint from './entryPoint';
+
+export default class REST<C extends Context> extends EntryPoint<C> {
+  generateInitialContext(event: Event, awsContext: AWSContext): Context {
+    const context: Context = {
+      functionName: awsContext.functionName,
+      headers: mapKeys(event.headers, (value, key) => key.toLowerCase()),
+    };
+
+    return context;
+  }
+
+  async getPayload(event: Event, context: Context): Promise<Params[]> {
+    const { body } = event;
+
+    let params: Record<string, Param> = {};
+
+    if (eventCanHaveBody(event)) {
+      if (!body) {
+        throw new Error('Body must contain well formed JSON', 400); 
+      }
+
+      const parsed = JSON.parse(body);
+
+      if (typeof this.method !== 'function') {
+        const schema = Yup.object().shape(this.method.validation(Yup, parsed, context));
+
+        await schema.validate(parsed);
+      }
+
+      params = parsed;
+    }
+
+    return [params];
+  }
+
+  async handleEvent(params: Params, context: Context, event: Event): Promise<unknown> {
+    try {
+      let result: any;
+
+      if (typeof this.method === 'function') {
+        result = await this.method(params, context, event);
+      } else {
+        const schema = Yup.object().shape(this.method.validation(Yup, params, context as C));
+
+        let values;
+
+        try {
+          values = await schema.validate(params);
+        } catch (error) {
+          throw new Error('One or more parameters are invalid', 400);
+        }
+
+        result = await this.method.handler(values, context as C, event);
+      }
+
+      return respond(result);
+    } catch (error) {
+      return respond(error);
+    }
+  }
+}
