@@ -1,6 +1,6 @@
 {
    "name": "ananke",
-   "version": "1.0.4",
+   "version": "1.0.5",
    "main": "dist/index.js",
    "types": "dist/index.d.ts",
    "license": "MIT",
@@ -22,7 +22,7 @@
       "build": "tsc -p ./tsconfig.json",
       "lint": "eslint src/**/*.ts",
       "format": "eslint src/**/*.ts --fix",
-      "prepublish": "npm run build"
+      "prepublish": "git add -u; git commit -m 'Publishing'; npm version patch && npm run build"
    },
    "devDependencies": {
       "@types/aws-lambda": "^8.10.81",

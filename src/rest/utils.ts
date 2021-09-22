@@ -7,6 +7,8 @@ export const respond = (errorOrResult: Error | unknown): Result => {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Credentials': true,
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept, User-Agent',
+      'Access-Control-Request-Method': 'OPTIONS, POST',
     },
   };
 
