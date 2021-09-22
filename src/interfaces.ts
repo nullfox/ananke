@@ -19,10 +19,11 @@ export type Handler<P extends Params, C extends Context = Context> = (
   event: Event,
 ) => Promise<unknown> | unknown;
 export type Method<P extends Params, C extends Context = Context> = {
+  authenticated?: boolean;
   validation: (yup: typeof Yup, input: Record<string, Param>, context: C) => Record<keyof P, AnySchema>;
   handler: Handler<P, C>;
 };
-export type Middleware<C = Context> = (event: Event, context: C) => C | Promise<C>;
+export type Middleware<C = Context> = (event: Event, context: C, options?: { authenticated?: boolean }) => C | Promise<C>;
 export type MethodLike<P extends Params = Params, C extends Context = Context> = Handler<P, C> | Method<P, C>;
 export type Schema = {
   id: string;

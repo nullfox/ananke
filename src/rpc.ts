@@ -72,13 +72,6 @@ export default class RPC<C extends Context> {
         );
       }
   
-      let context: Context = {
-        functionName: awsContext.functionName,
-        headers: mapKeys(event.headers, (value, key) => key.toLowerCase()),
-      };
-
-      context = await this.middleware.reduce((acc, next) => acc.then((ctx) => next(event, ctx as C)), Promise.resolve(context));
-  
       // Collect our array of schemas that will be 1+
       const schemas = maybeParse(event.body);
   
@@ -93,11 +86,20 @@ export default class RPC<C extends Context> {
             throw new Error(schema.id, Error.CODE.INVALID_METHOD);
           }
   
+          let context: Context = {
+            functionName: awsContext.functionName,
+            headers: mapKeys(event.headers, (value, key) => key.toLowerCase()),
+          };
+  
           let result;
   
           if (typeof method === 'function') {
+            context = await this.middleware.reduce((acc, next) => acc.then((ctx) => next(event, ctx as C)), Promise.resolve(context));
+
             result = await method(schema.params, context, event);
           } else {
+            context = await this.middleware.reduce((acc, next) => acc.then((ctx) => next(event, ctx as C, { authenticated: method.authenticated })), Promise.resolve(context));
+
             const paramSchema = Yup.object().shape(method.validation(Yup, schema.params, context as C));
   
             let values;
