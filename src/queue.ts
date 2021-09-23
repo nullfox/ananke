@@ -48,7 +48,7 @@ export default class Queue<C extends Context> {
 
         const parsed = JSON.parse(data);
 
-        if (typeof this.method !== 'function') {
+        if (typeof this.method !== 'function' && this.method.validation) {
           const schema = Yup.object().shape(this.method.validation(Yup, parsed, context));
 
           await schema.validate(parsed);
@@ -59,14 +59,16 @@ export default class Queue<C extends Context> {
         if (typeof this.method === 'function') {
           await this.method(params, context, event);
         } else {
-          const schema = Yup.object().shape(this.method.validation(Yup, params, context as C));
+          let values = params;
 
-          let values;
+          if (this.method.validation) {
+            const schema = Yup.object().shape(this.method.validation(Yup, params, context as C));
 
-          try {
-            values = await schema.validate(params);
-          } catch (error) {
-            throw new Error('One or more parameters are invalid', 400);
+            try {
+              values = await schema.validate(params);
+            } catch (error) {
+              throw new Error('One or more parameters are invalid', 400);
+            }
           }
 
           await this.method.handler(values, context as C, event);

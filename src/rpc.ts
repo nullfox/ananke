@@ -100,14 +100,16 @@ export default class RPC<C extends Context> {
           } else {
             context = await this.middleware.reduce((acc, next) => acc.then((ctx) => next(event, ctx as C, { authenticated: method.authenticated })), Promise.resolve(context));
 
-            const paramSchema = Yup.object().shape(method.validation(Yup, schema.params, context as C));
+            let values = schema.params;
+
+            if (method.validation) {
+              const paramSchema = Yup.object().shape(method.validation(Yup, schema.params, context as C));
   
-            let values;
-  
-            try {
-              values = await paramSchema.validate(schema.params);
-            } catch (error) {
-              throw new Error(schema.id, Error.CODE.INVALID_PARAMS);
+              try {
+                values = await paramSchema.validate(schema.params);
+              } catch (error) {
+                throw new Error(schema.id, Error.CODE.INVALID_PARAMS);
+              }
             }
   
             result = await method.handler(values, context as C, event);
