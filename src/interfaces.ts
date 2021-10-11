@@ -3,6 +3,7 @@ import Yup, { AnySchema } from 'yup';
 export type AWSContext = import('aws-lambda').Context;
 export type Result = import('aws-lambda').APIGatewayProxyResult;
 export type Event = import('aws-lambda').APIGatewayProxyEvent | import('aws-lambda').APIGatewayProxyEventV2;
+export type GraphQLEvent = import('aws-lambda').APIGatewayProxyEvent;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Param = any;
 export interface Params {
@@ -24,6 +25,7 @@ export type Method<P extends Params, C extends Context = Context> = {
   handler: Handler<P, C>;
 };
 export type Middleware<C = Context> = (event: Event, context: C, options?: { authenticated?: boolean }) => C | Promise<C>;
+export type GraphQLMiddleware<C = Context> = (event: GraphQLEvent, context: C, options?: { authenticated?: boolean }) => C | Promise<C>;
 export type MethodLike<P extends Params = Params, C extends Context = Context> = Handler<P, C> | Method<P, C>;
 export type Schema = {
   id: string;
