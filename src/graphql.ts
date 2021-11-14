@@ -30,7 +30,7 @@ export default class GraphQL<C extends Context> {
       ...this.config,
       context: async (rawContext) => {
         const { event } = rawContext;
-        const resolvedHeaders = (event.headers || headers) || {};
+        const resolvedHeaders = ((event || {}).headers || headers) || {};
 
         let context: Context = {
           functionName: 'graphql',
