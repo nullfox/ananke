@@ -21,15 +21,20 @@ export default class GraphQL<C extends Context> {
     return this;
   }
 
-  server(): ApolloServer {
+  server(headers?: { [key: string]: string }): ApolloServer {
+    if (headers) {
+      console.log('==== Warning: Forced headers have been set');
+    }
+
     return new ApolloServer({
       ...this.config,
       context: async (rawContext) => {
         const { event } = rawContext;
+        const resolvedHeaders = (event.headers || headers) || {};
 
         let context: Context = {
           functionName: 'graphql',
-          headers: mapKeys(event.headers, (value, key) => key.toLowerCase()),
+          headers: mapKeys(resolvedHeaders, (value, key) => key.toLowerCase()),
         };
 
         context = await this.middleware.reduce((acc, next) => acc.then((ctx) => next(event, ctx as C)), Promise.resolve(context));
