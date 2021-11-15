@@ -21,7 +21,7 @@ export default class GraphQL<C extends Context> {
     return this;
   }
 
-  server(headerGenerator?: () => { [key: string]: string }): ApolloServer {
+  server(headerGenerator?: () => Record<string, string>): ApolloServer {
     if (headerGenerator) {
       console.log('==== Warning: Forced headers will be generated');
     }
