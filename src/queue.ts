@@ -1,26 +1,31 @@
 import { SQSEvent } from 'aws-lambda';
+import { SQS } from 'aws-sdk';
 import * as Yup from 'yup';
 import Error from './rest/error';
 import { Context, MethodLike, Middleware, EventHandler, Param } from './interfaces';
-import { isObject, isString } from 'lodash';
+import { isString } from 'lodash';
+
+const sqs = new SQS();
 
 export default class Queue<C extends Context> {
   method: MethodLike;
+  queueUrl: string;
   middleware: Middleware<C>[] = [];
 
-  static create<C extends Context>(method: MethodLike): Queue<C> {
-    return new Queue<C>(method);
+  static create<C extends Context>(method: MethodLike, queueUrl: string): Queue<C> {
+    return new Queue<C>(method, queueUrl);
   }
 
-  static fromPath<C extends Context>(path: string): Queue<C> {
+  static fromPath<C extends Context>(path: string, queueUrl: string): Queue<C> {
     // eslint-disable-next-line
     const method = require(path);
 
-    return new Queue<C>(method.default ? method.default : method);
+    return new Queue<C>(method.default ? method.default : method, queueUrl);
   }
 
-  constructor(method: MethodLike) {
+  constructor(method: MethodLike, queueUrl: string) {
     this.method = method;
+    this.queueUrl = queueUrl;
   }
 
   addMiddleware(fn: Middleware<C>): this {
@@ -47,7 +52,7 @@ export default class Queue<C extends Context> {
 
       let params: Record<string, Param> = {};
 
-      return Promise.all(
+      return Promise.allSettled(
         Records.map(async (record) => {
           const data = JSON.parse(record.body);
 
@@ -61,22 +66,35 @@ export default class Queue<C extends Context> {
 
           params = parsed;
 
-          if (typeof this.method === 'function') {
-            await this.method(params, context, event);
-          } else {
-            let values = params;
+          try {
+            if (typeof this.method === 'function') {
+              await this.method(params, context, event);
+            } else {
+              let values = params;
 
-            if (this.method.validation) {
-              const schema = Yup.object().shape(this.method.validation(Yup, params, context as C));
+              if (this.method.validation) {
+                const schema = Yup.object().shape(this.method.validation(Yup, params, context as C));
 
-              try {
-                values = await schema.validate(params);
-              } catch (error) {
-                throw new Error('One or more parameters are invalid', 400);
+                try {
+                  values = await schema.validate(params);
+                } catch (error) {
+                  throw new Error('One or more parameters are invalid', 400);
+                }
               }
+
+              await this.method.handler(values, context as C, event);
             }
 
-            await this.method.handler(values, context as C, event);
+            await sqs.deleteMessage({
+              QueueUrl: this.queueUrl,
+              ReceiptHandle: record.receiptHandle,
+            });
+          } catch (error) {
+            await sqs.changeMessageVisibility({
+              QueueUrl: this.queueUrl,
+              ReceiptHandle: record.receiptHandle,
+              VisibilityTimeout: 1,
+            });
           }
         }),
       );

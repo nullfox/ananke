@@ -34,7 +34,7 @@ const rpc = RPC.create<TestContext>()
     return context;
   })
   .addMiddleware(async (event, context) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     context.user = {
       id: v4(),
@@ -47,17 +47,17 @@ const rpc = RPC.create<TestContext>()
 
 exports.rpc = rpc.handler();
 exports.webhook = REST.fromPath<TestContext>(join(__dirname, 'rest/webhook'))
-.addMiddleware(async (event, context) => {
-  await new Promise(resolve => setTimeout(resolve, 500));
+  .addMiddleware(async (event, context) => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-  context.user = {
-    id: v4(),
-    firstName: 'Ben',
-    lastName: 'Fox',
-  };
+    context.user = {
+      id: v4(),
+      firstName: 'Ben',
+      lastName: 'Fox',
+    };
 
-  return context;
-})
-.handler();
+    return context;
+  })
+  .handler();
 
-exports.queue = Queue.fromPath<Context>(join(__dirname, 'queue/recording')).handler();
+exports.queue = Queue.fromPath<Context>(join(__dirname, 'queue/recording'), 'http://fake').handler();
